@@ -27,7 +27,7 @@
         <template #item="{element, index}">
           <q-card v-ripple :class="'row shadow-1 q-pa-sm ' + ($nearDueDate(element.dueDate, element.rating) ? 'bg-red-3': '')" @click="openCardPrompt(element, index)">
             <div>
-              {{ element.index }} {{ element.name }}
+              {{ element.name }}
             </div>
             <q-space></q-space>
             <q-btn round dense size="sm" v-for="(m) in element.assignedTo" :key="m.id" :color="$randomLastNameColor(m.displayName)">
