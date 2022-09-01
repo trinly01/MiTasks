@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "categories",
+  "info": {
+    "name": "category",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "project": {
+      "via": "categories",
+      "model": "project"
+    },
+    "description": {
+      "type": "string"
+    },
+    "cards": {
+      "via": "category",
+      "collection": "card"
+    },
+    "index": {
+      "type": "integer"
+    }
+  }
+}

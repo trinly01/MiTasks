@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "projects",
+  "info": {
+    "name": "Project",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "owner": {
+      "via": "projects",
+      "plugin": "users-permissions",
+      "model": "user"
+    },
+    "boards": {
+      "via": "project",
+      "collection": "board"
+    },
+    "revs": {
+      "type": "integer"
+    },
+    "cards": {
+      "via": "project",
+      "collection": "card"
+    },
+    "categories": {
+      "via": "project",
+      "collection": "category"
+    },
+    "members": {
+      "via": "project_membership",
+      "plugin": "users-permissions",
+      "collection": "user",
+      "dominant": true
+    },
+    "activities": {
+      "via": "project",
+      "collection": "activity"
+    },
+    "privacy": {
+      "type": "string",
+      "default": "private",
+      "required": false
+    }
+  }
+}

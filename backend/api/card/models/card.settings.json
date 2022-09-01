@@ -1,0 +1,62 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cards",
+  "info": {
+    "name": "Card",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "richtext"
+    },
+    "index": {
+      "type": "integer"
+    },
+    "board": {
+      "via": "cards",
+      "model": "board"
+    },
+    "project": {
+      "via": "cards",
+      "model": "project"
+    },
+    "category": {
+      "via": "cards",
+      "model": "category"
+    },
+    "attachments": {
+      "collection": "file",
+      "via": "related",
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos"
+      ],
+      "plugin": "upload",
+      "required": false,
+      "pluginOptions": {}
+    },
+    "dueDate": {
+      "type": "date"
+    },
+    "assignedTo": {
+      "plugin": "users-permissions",
+      "collection": "user",
+      "via": "assignments",
+      "dominant": true
+    },
+    "activities": {
+      "via": "card",
+      "collection": "activity"
+    }
+  }
+}

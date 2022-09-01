@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "boards",
+  "info": {
+    "name": "board",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "project": {
+      "via": "boards",
+      "model": "project"
+    },
+    "index": {
+      "type": "integer"
+    },
+    "cards": {
+      "via": "board",
+      "collection": "card"
+    }
+  }
+}
