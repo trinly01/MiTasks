@@ -10,74 +10,79 @@
 
 <template>
   <q-page>
-    <div class="" style="background:rgba(255,255,255,0.75); backdrop-filter: blur(6px)">
-      <q-toolbar>
-        <q-toolbar-title class="col-auto">
+    <div class="q-pa-md" style="background:rgba(255,255,255,0.75); backdrop-filter: blur(6px)">
+      <div class="row wrap q-gutter-sm">
+        <div class="col wrap">
           <!-- {{ proj.name }} -->
           <span @dblclick="$global.ifAct($global.isProjectOwner(proj), renameProj)" v-show="!renaming" class="text-h6 cut-text">{{ proj.name }}&nbsp;</span>
           <q-input @keyup.enter="saveNewName" @keyup.esc="renaming = false" v-show="renaming" @blur="renaming = false" ref="newName" v-model="newName" label="Project Name" />
           <!-- <q-input label-color="white" @keyup.enter="saveNewName" @keyup.esc="renaming = false" v-show="renaming" @blur="renaming = false" ref="newName" v-model="newName" label="Board name" dark filled /> -->
-        </q-toolbar-title>
-        <div @dblclick="$global.ifAct($global.isProjectOwner(proj), changeDesc)" v-show="!descOnFocus" class="col-auto">{{ proj.description }}</div>
-        <q-input class="col" @keyup.enter="saveNewDesc" @focus="descOnFocus = true" @keyup.esc="descOnFocus = false" v-show="(descOnFocus || !proj.description) && $global.isProjectOwner(proj)" @blur="descOnFocus = false" ref="newDesc" v-model="newDesc" label="Short Description" />
-        <q-space></q-space>
-        <div class="q-gutter-xs">
-          <q-btn round size="sm" v-for="(m) in proj.members" :key="m.id" :color="$randomLastNameColor(m.displayName)">
-            {{ $getFirstTwoChars(m.displayName) }}
-            <q-tooltip :offset="[0,-1]" >
-              {{ m.displayName }}
-            </q-tooltip>
-          </q-btn>
-          <q-btn v-if="$global.isProjectMember(proj) || $global.isProjectOwner(proj)" flat round icon="settings" color="blue-grey" >
-            <q-menu>
-              <q-list style="min-width: 180px">
-                <q-item tag="label" v-ripple class="bg-grey-3">
-                  <q-item-section>
-                    <q-item-label>Privacy</q-item-label>
-                  </q-item-section>
-                  <q-item-section side >
-                    <q-btn-toggle
-                      @update:model-value="updatePrivacy"
-                      size="sm"
-                      v-model="proj.privacy"
-                      no-caps
-                      rounded
-                      unelevated
-                      toggle-color="primary"
-                      color="white"
-                      text-color="primary"
-                      :options="[
-                        {label: 'Private', value: 'private'},
-                        {label: 'Public', value: 'public'}
-                      ]"
-                    />
-                  </q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="openMembersPrompt">
-                  <q-item-section>Members</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="openCategoriesPrompt">
-                  <q-item-section>Categories</q-item-section>
-                </q-item>
-                <q-separator />
-                <q-item clickable v-close-popup>
-                  <q-item-section>Help &amp; Feedback</q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-btn>
+          <span @dblclick="$global.ifAct($global.isProjectOwner(proj), changeDesc)" v-show="!descOnFocus" class="text-caption">{{ proj.description }}</span>
+          <q-input @keyup.enter="saveNewDesc" @focus="descOnFocus = true" @keyup.esc="descOnFocus = false" v-show="(descOnFocus || !proj.description) && $global.isProjectOwner(proj)" @blur="descOnFocus = false" ref="newDesc" v-model="newDesc" label="Short Description" />
         </div>
-      </q-toolbar>
+        <TFilter />
+        <div class="q-gutter-xs">
+            <q-btn round size="sm" v-for="(m) in proj.members" :key="m.id" :color="$randomLastNameColor(m.displayName)">
+              {{ $getFirstTwoChars(m.displayName) }}
+              {{ updateNumberOfClosedTickets(m) }}
+              {{ updateNumberOfOpenTickets(m) }}
+              <q-tooltip :offset="[0,-1]" >
+                {{ m.displayName }}
+                <span v-if="m.closedTickets"><br /> <q-badge color="positive"> {{m.closedTickets}} </q-badge> closed tickets</span>
+                <span v-if="m.openTickets"><br /> <q-badge color="warning"> {{m.openTickets}} </q-badge> open tickets</span>
+              </q-tooltip>
+              <q-badge v-if="m.openTickets" color="red" rounded floating />
+            </q-btn>
+          
+            <q-btn v-if="$global.isProjectMember(proj) || $global.isProjectOwner(proj)" flat round icon="settings" color="blue-grey" >
+              <q-menu>
+                <q-list style="min-width: 180px">
+                  <q-item tag="label" v-ripple class="bg-grey-3">
+                    <q-item-section>
+                      <q-item-label>Privacy</q-item-label>
+                    </q-item-section>
+                    <q-item-section side >
+                      <q-btn-toggle
+                        @update:model-value="updatePrivacy"
+                        size="sm"
+                        v-model="proj.privacy"
+                        no-caps
+                        rounded
+                        unelevated
+                        toggle-color="primary"
+                        color="white"
+                        text-color="primary"
+                        :options="[
+                          {label: 'Private', value: 'private'},
+                          {label: 'Public', value: 'public'}
+                        ]"
+                      />
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="openMembersPrompt">
+                    <q-item-section>Members</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="openCategoriesPrompt">
+                    <q-item-section>Categories</q-item-section>
+                  </q-item>
+                  <q-separator />
+                  <q-item clickable v-close-popup>
+                    <q-item-section>Help &amp; Feedback</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+        </div>
+      </div>
     </div>
     <div v-if="!$global.user" class="row no-wrap justify-center" style="top: 42px; width: auto; overflow-x: auto;" >
       Please Login
     </div>
-    <div v-else class="row no-wrap" style="top: 42px; width: auto; overflow-x: auto;" >
+    <div v-else class="row no-wrap" style="top: 42px; width: auto; overflow-x: auto; height: calc(100vh - 150px);" >
       <draggable
         :disabled="!$global.isProjectOwner(proj)"
         @change="updateBoardIndex"
         class="row no-wrap q-pa-md q-gutter-md"
-        style="height: calc(100vh - 101px);"
         v-model="proj.boards"
         item-key="id"
         handle=".board-handle">
@@ -105,12 +110,13 @@ import Board from 'components/Board.vue'
 import Members from 'components/Members.vue'
 import Categories from 'components/Categories.vue'
 import MembersVue from '../components/Members.vue';
-
-
+import TFilter from '../components/TFilter.vue'
+import { filters } from '../store/store.js'
 
 export default defineComponent({
   components: {
-    Board
+    Board,
+    TFilter
   },
   name: 'PageIndex',
   data () {
@@ -148,6 +154,47 @@ export default defineComponent({
     // clearInterval(this.$fetchTimer)
   },
   methods: {
+    updateNumberOfClosedTickets (m) {
+      // https://it-helpdesk-mirdc.ap.ngrok.io/cards/count?&_where[0][assignedTo.username]=3427&_where[1][board.name]=Closed
+
+      const qo = {
+        _where: {
+          'assignedTo.username': m.username,
+          'board.project.id': this.proj.id,
+          'board.name': 'Closed',
+          created_at_gte: new Date(filters.startDate),
+          created_at_lte: new Date(filters.endDate)
+        }
+      }
+      const query = this.$qs.stringify(qo)
+      this.$strapi.get('/cards/count?' + query).then((result) => {
+        console.log('result trin', result.data)
+        m.closedTickets = result.data
+      })
+      // return result
+    },
+    updateNumberOfOpenTickets (m) {
+      // https://it-helpdesk-mirdc.ap.ngrok.io/cards/count?&_where[0][assignedTo.username]=3427&_where[1][board.name]=Closed
+
+      const qo = {
+        _where: [
+          {
+            created_at_gte: new Date(filters.startDate),
+            created_at_lte: new Date(filters.endDate),
+            'assignedTo.username': m.username,
+            'board.project.id': this.proj.id,
+            'board.name_ne': 'Closed',
+          },
+          {'board.name_ne': 'Cancelled'}
+        ]
+      }
+      const query = this.$qs.stringify(qo)
+      this.$strapi.get('/cards/count?' + query).then((result) => {
+        console.log('result open', result.data)
+        m.openTickets = result.data
+      })
+      // return result
+    },
     async saveNewName () {
       if (!this.newName) return
       const { data: proj } = await this.$strapi.put('/projects/'+this.proj.id, {

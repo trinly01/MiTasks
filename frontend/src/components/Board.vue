@@ -59,6 +59,8 @@
 <script>
 
 import CardForm from 'components/CardForm.vue'
+import { watch } from 'vue'
+import { filters } from '../store/store.js'
 
 export default {
   props: ['proj', 'board', 'index'],
@@ -71,7 +73,8 @@ export default {
       cardName: '',
       newName: '',
       $fetchTimer: null,
-      creatingCard: false
+      creatingCard: false,
+      gettingCards: false
     }
   },
   watch: {
@@ -90,11 +93,28 @@ export default {
     }
     
   },
+  created () {
+    watch(
+      () => [filters.startDate, filters.endDate],
+      async () => {
+        this.getCards()
+      }
+    )
+  },
   async mounted () {
     this.cards = await this.getCards()
 
-    this.$fetchTimer = setTimeout(async () => {
-      this.cards = await this.getCards()
+    this.$fetchTimer = setInterval(async () => {
+      if (!this.gettingCards) {
+        this.gettingCards = true
+        try {
+          this.cards = await this.getCards()
+          this.gettingCards = false
+        } catch (error) {
+          this.gettingCards = false
+        }
+      }
+      
     }, 1000 * 10);
 
     console.log(this.cards.map(c => c.id))
@@ -108,6 +128,7 @@ export default {
     clearInterval(this.$fetchTimer)
   },
   methods: {
+    
     async deleteBoard (board, i) {
       console.log('hi')
       this.$q.dialog({
@@ -250,7 +271,9 @@ export default {
             {
               owner: this.$global.user.user.id
             }
-          ]
+          ],
+          created_at_gte: new Date(filters.startDate),
+          created_at_lte: new Date(filters.endDate)
         },
         _sort: 'index:ASC',
         _limit: 500

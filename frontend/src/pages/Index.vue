@@ -27,6 +27,7 @@
     </div>
     <div v-else class="row q-pa-md q-gutter-md absolute-top justify-center" :class="{ 'justify-center': $q.screen.lt.md }" style="top: 42px" >
       <projectCard
+        class="cursor-pointer"
         v-for="proj in $global.projects"
         :project="proj"
         :key="proj.id"
