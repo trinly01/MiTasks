@@ -16,12 +16,15 @@
       <div class="text-subtitle2">Edited {{ $timeAgo(proj.updated_at) }}</div>
       </q-card-section> -->
       <q-separator />
+      <!-- <div>
+        {{ filters.assignedTo.length }}
+      </div> -->
       <draggable
         style="min-height: 30px;"
         :disabled="!$global.isProjectMember(proj)"
         class="q-gutter-sm q-pa-sm"
         @change="change"
-        :list="cards" 
+        :list="filteredCards" 
         group="boards" 
         item-key="id">
         <template #item="{element, index}">
@@ -66,6 +69,7 @@ export default {
   props: ['proj', 'board', 'index'],
   data () {
     return {
+      filters,
       renaming: false,
       hovering: false,
       cards: [],
@@ -75,6 +79,19 @@ export default {
       $fetchTimer: null,
       creatingCard: false,
       gettingCards: false
+    }
+  },
+  computed: {
+    filteredCards () {
+      if (this.proj.members.filter(m => !m.removedFromFilter).length === this.proj.members.length) {
+        return this.cards
+      }
+      return this.cards.filter(c => {
+        return this.proj.members.find(member => {
+          if (member.removedFromFilter) return false
+          return c.assignedTo.find(assignee => member.id ===  assignee.id)
+        })
+      })
     }
   },
   watch: {

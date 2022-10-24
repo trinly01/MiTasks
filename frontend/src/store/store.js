@@ -4,6 +4,7 @@ import { startOfMonth, format, sub } from 'date-fns'
 const now = new Date()
 
 const filters = reactive({
+  // assignedTo: [],
   startDate: format(
     startOfMonth(
       sub(now, {

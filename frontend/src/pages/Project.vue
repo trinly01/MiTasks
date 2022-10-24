@@ -22,7 +22,7 @@
         </div>
         <TFilter />
         <div class="q-gutter-xs">
-            <q-btn round size="sm" v-for="(m) in proj.members" :key="m.id" :color="$randomLastNameColor(m.displayName)">
+            <q-btn round size="sm" v-for="(m) in proj.members" :key="m.id" :color="m.removedFromFilter ? 'grey': $randomLastNameColor(m.displayName)" @click="toggleAssigneeFilter(m)" @dblclick="toggleJustMe(m)">
               {{ $getFirstTwoChars(m.displayName) }}
               {{ updateNumberOfClosedTickets(m) }}
               {{ updateNumberOfOpenTickets(m) }}
@@ -146,14 +146,43 @@ export default defineComponent({
   },
   async mounted () {
     await this.getProject()
+    
     // this.$fetchTimer = setInterval(() => {
     //   this.getProject()
     // }, 1000 * 1);
+    // filters.assignedTo = [...this.proj.members]
   },
   unmounted () {
     // clearInterval(this.$fetchTimer)
   },
   methods: {
+    toggleJustMe (m) {
+      console.log('dblclick')
+      if (this.proj.members.filter(m => !m.removedFromFilter).length <= 1) {
+        for (const member of this.proj.members) {
+          member.removedFromFilter = false
+        }
+        return
+      }
+      if (!m.removedFromFilter) {
+        for (const member of this.proj.members) {
+          member.removedFromFilter = true
+        }
+        m.removedFromFilter = false
+        return
+      }
+      for (const member of this.proj.members) {
+        member.removedFromFilter = false
+      }
+      // return filters.assignedTo = [...this.proj.members]
+    },
+    toggleAssigneeFilter (m) {
+      // if (filters.assignedTo.length <= 1) {
+      //   return
+      // }
+      m.removedFromFilter = !m.removedFromFilter
+      // filters.assignedTo.splice(i, 1)
+    },
     updateNumberOfClosedTickets (m) {
       // https://it-helpdesk-mirdc.ap.ngrok.io/cards/count?&_where[0][assignedTo.username]=3427&_where[1][board.name]=Closed
 
