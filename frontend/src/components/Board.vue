@@ -17,7 +17,10 @@
       </q-card-section> -->
       <q-separator />
       <!-- <div>
-        {{ filters.assignedTo.length }}
+        {{ filteredCards.length }}
+      </div>
+      <div>
+        {{ cards.length }}
       </div> -->
       <draggable
         style="min-height: 30px;"
@@ -280,6 +283,10 @@ export default {
       await this.updateIndexes()
     },
     async getCards () {
+
+      const endDate = new Date(filters.endDate)
+      endDate.setHours(23, 59, 59, 999)
+      console.log('endDate',endDate)
       const qo = {
         _where: {
           // project: this.proj.id,
@@ -290,7 +297,7 @@ export default {
             }
           ],
           created_at_gte: new Date(filters.startDate),
-          created_at_lte: new Date(filters.endDate)
+          created_at_lte: endDate
         },
         _sort: 'index:ASC',
         _limit: 500
