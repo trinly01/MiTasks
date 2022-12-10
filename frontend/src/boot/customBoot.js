@@ -21,9 +21,14 @@ import { date } from 'quasar'
 
 import MD5 from "crypto-js/md5"
 
+import VueChartkick from 'vue-chartkick'
+import 'chartkick/chart.js'
+
 // "async" is optional;
 export default boot(async ( { app, router } ) => {
   // something to do
+
+  app.use(VueChartkick)
 
   app.component('draggable', draggable)
 
@@ -42,11 +47,17 @@ export default boot(async ( { app, router } ) => {
   globalProperties.$nearDueDate = (dueDate, rating) => {
     if (!dueDate) return false
     if (rating) return false
-    console.log('subBusinessDays(new Date(), 3)', subBusinessDays(new Date(), 3), new Date(dueDate), rating)
+    // console.log('subBusinessDays(new Date(), 3)', subBusinessDays(new Date(), 3), new Date(dueDate), rating)
     return subBusinessDays(new Date(dueDate), 3) <= new Date()
   }
 
-  
+  globalProperties.$limitStringLength = (str, maxLength) => {
+    if (str.length > maxLength) {
+      return str.substring(0, maxLength) + "...";
+    } else {
+      return str;
+    }
+  }
 
   globalProperties.$timeAgo = (dt) => {
     // return $timeAgo.format(new Date(dt))
@@ -258,4 +269,6 @@ export default boot(async ( { app, router } ) => {
   globalProperties.$diff = (a, b) => {
     return diff.prettyHtml(diff.main(a+'', b+''))
   }
+
+  app.provide('globalProperties', globalProperties)
 })

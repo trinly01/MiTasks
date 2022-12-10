@@ -20,7 +20,7 @@
           <span @dblclick="$global.ifAct($global.isProjectOwner(proj), changeDesc)" v-show="!descOnFocus" class="text-caption">{{ proj.description }}</span>
           <q-input @keyup.enter="saveNewDesc" @focus="descOnFocus = true" @keyup.esc="descOnFocus = false" v-show="(descOnFocus || !proj.description) && $global.isProjectOwner(proj)" @blur="descOnFocus = false" ref="newDesc" v-model="newDesc" label="Short Description" />
         </div>
-        <TFilter />
+        <tFilter :proj="proj" />
         <div class="q-gutter-xs">
             <q-btn round size="sm" v-for="(m) in proj.members" :key="m.id" :color="m.removedFromFilter ? 'grey': $randomLastNameColor(m.displayName)" @click="toggleAssigneeFilter(m)" @dblclick="toggleJustMe(m)">
               {{ $getFirstTwoChars(m.displayName) }}
@@ -78,6 +78,9 @@
     <div v-if="!$global.user" class="row no-wrap justify-center" style="top: 42px; width: auto; overflow-x: auto;" >
       Please Login
     </div>
+    <div v-else-if="filters.view === 'gantt'" class="row no-wrap q-pa-md q-gutter-md" style="top: 42px; width: auto; overflow-x: auto; height: calc(100vh - 150px);">
+      <Gantt :data="tickets"/>
+    </div>
     <div v-else class="row no-wrap" style="top: 42px; width: auto; overflow-x: auto; height: calc(100vh - 150px);" >
       <draggable
         :disabled="!$global.isProjectOwner(proj)"
@@ -110,23 +113,59 @@ import Board from 'components/Board.vue'
 import Members from 'components/Members.vue'
 import Categories from 'components/Categories.vue'
 import MembersVue from '../components/Members.vue';
-import TFilter from '../components/TFilter.vue'
-import { filters } from '../store/store.js'
+import TFilter from 'components/TFilter.vue'
+import { filters, ticketsByColumn } from '../store/store.js'
+
+import { add } from 'date-fns'
+
+// const { $nearDueDate } = inject('globalProperties')
+
+import Gantt from 'components/Gantt.vue'
 
 export default defineComponent({
   components: {
     Board,
-    TFilter
+    TFilter,
+    Gantt
   },
   name: 'PageIndex',
   data () {
     return {
+      ticketsByColumn,
       $fetchTimer: null,
       proj: {},
       renaming: false,
       newName: '',
       descOnFocus: false,
-      newDesc: ''
+      newDesc: '',
+      filters
+    }
+  },
+  computed: {
+    tickets () {
+      const tickets = []
+      for (const column of Object.keys(this.ticketsByColumn.columns)) {
+        console.log('COLUMN TRIN', this.ticketsByColumn.columns[column])
+        for (const ticket of this.ticketsByColumn.columns[column]) {
+          console.log('ticket TRIN', ticket)
+          const start = new Date(ticket.targetStart || ticket.created_at)
+          const end = new Date(ticket.dueDate || add(start, { weeks: 1}))
+
+          tickets.push({
+            id: ticket.id,
+            text: this.$limitStringLength(ticket.name, 30),
+            start,
+            end,
+            percent: this.$nearDueDate(end, ticket.rating) ? 0.20 : 1,
+            links: [],
+            openCardPrompt: ticket.openCardPrompt
+          })
+        }
+      }
+
+      console.log('ticketsByColumn.columns', tickets)
+
+      return tickets.sort((a, b) => new Date(b['start']) - new Date(a['start']))
     }
   },
   created () {
@@ -186,13 +225,15 @@ export default defineComponent({
     updateNumberOfClosedTickets (m) {
       // https://it-helpdesk-mirdc.ap.ngrok.io/cards/count?&_where[0][assignedTo.username]=3427&_where[1][board.name]=Closed
 
+      const endDate = new Date(filters.endDate)
+      endDate.setHours(23, 59, 59, 999)
       const qo = {
         _where: {
           'assignedTo.username': m.username,
           'board.project.id': this.proj.id,
           'board.name': 'Closed',
           created_at_gte: new Date(filters.startDate),
-          created_at_lte: new Date(filters.endDate)
+          created_at_lte: endDate
         }
       }
       const query = this.$qs.stringify(qo)
@@ -205,11 +246,14 @@ export default defineComponent({
     updateNumberOfOpenTickets (m) {
       // https://it-helpdesk-mirdc.ap.ngrok.io/cards/count?&_where[0][assignedTo.username]=3427&_where[1][board.name]=Closed
 
+      const endDate = new Date(filters.endDate)
+      endDate.setHours(23, 59, 59, 999)
+
       const qo = {
         _where: [
           {
             created_at_gte: new Date(filters.startDate),
-            created_at_lte: new Date(filters.endDate),
+            created_at_lte: endDate,
             'assignedTo.username': m.username,
             'board.project.id': this.proj.id,
             'board.name_ne': 'Closed',
@@ -294,6 +338,7 @@ export default defineComponent({
       })
     },
     async getProject () {
+      this.ticketsByColumn.columns = {}
       const { data: proj } = await this.$strapi.get('/projects/' + this.$route.params.id)
       proj.boards = await this.getBoards(proj)
       this.proj = proj

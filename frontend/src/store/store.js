@@ -5,6 +5,7 @@ const now = new Date()
 
 const filters = reactive({
   // assignedTo: [],
+  view: 'kanban',
   startDate: format(
     startOfMonth(
       sub(now, {
@@ -16,10 +17,11 @@ const filters = reactive({
   endDate: format(now, 'yyyy/MM/dd')
 })
 
-console.log('sub', sub(now, {
-  month: 2
-}))
+const ticketsByColumn = reactive({
+  columns: {}
+})
 
 export {
-  filters
+  filters,
+  ticketsByColumn
 }

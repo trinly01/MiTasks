@@ -66,12 +66,13 @@
 
 import CardForm from 'components/CardForm.vue'
 import { watch } from 'vue'
-import { filters } from '../store/store.js'
+import { filters, ticketsByColumn } from '../store/store.js'
 
 export default {
   props: ['proj', 'board', 'index'],
   data () {
     return {
+      ticketsByColumn,
       filters,
       renaming: false,
       hovering: false,
@@ -311,6 +312,12 @@ export default {
       const query = this.$qs.stringify(qo)
       const { data: cards } = await this.$strapi.get('/cards/?' + query)
       console.log('CARDS', cards)
+
+      this.ticketsByColumn.columns[this.board.name] = cards.map( (c, index) => {
+        c.openCardPrompt = () => this.openCardPrompt(c, index)
+        return c
+      })
+
       return cards
     },
     newCard () {
